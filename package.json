@@ -1,0 +1,12 @@
+{
+  "name": "patch-or-panic",
+  "version": "1.0.0",
+  "description": "CVE severity ranking game — can you tell which vulnerability should terrify you more?",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

@@ -1,0 +1,41 @@
+name: Fetch CVEs & Deploy to GitHub Pages
+
+on:
+  schedule:
+    # Rebuild daily at 06:00 UTC so the CVE dataset stays fresh
+    - cron: '0 6 * * *'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed by peaceiris/actions-gh-pages to push gh-pages branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 20 has native fetch — no extra dependencies needed for the script
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch CVEs from NVD
+        run: node scripts/fetch-cves.js
+        env:
+          # Add NVD_API_KEY in repo Settings → Secrets to raise the rate limit
+          # from 5 req/30s to 50 req/30s (cuts fetch time from ~3 min to ~20s).
+          # Get a free key at: https://nvd.nist.gov/developers/request-an-api-key
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        timeout-minutes: 15
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          # Writes the CNAME file into the deployed branch so GitHub Pages
+          # keeps the custom domain across every deploy
+          cname: cve.wiki
