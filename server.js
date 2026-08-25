@@ -378,6 +378,21 @@ app.get('/api/cves', (req, res) => {
   res.json(cvePool);
 });
 
+// Proxy LinkedIn OAuth token exchange — browser can't do this directly due to CORS
+app.post('/api/li-token', express.urlencoded({ extended: false }), async (req, res) => {
+  try {
+    const resp = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(req.body).toString(),
+    });
+    const data = await resp.json();
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Start — listen immediately so the frontend loading screen can poll /api/status
 app.listen(PORT, () => {
   console.log(`\n🚨  PATCH OR PANIC?  →  http://localhost:${PORT}\n`);
