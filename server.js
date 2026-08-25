@@ -378,17 +378,70 @@ app.get('/api/cves', (req, res) => {
   res.json(cvePool);
 });
 
-// Proxy LinkedIn OAuth token exchange — browser can't do this directly due to CORS
-app.post('/api/li-token', express.urlencoded({ extended: false }), async (req, res) => {
+// One-shot LinkedIn share: token exchange + member ID via introspection + post creation.
+// Requires LI_CLIENT_SECRET env var: LI_CLIENT_SECRET=<secret> node server.js
+app.post('/api/li-share', express.json(), async (req, res) => {
+  const LI_CLIENT_SECRET = process.env.LI_CLIENT_SECRET || '';
+  if (!LI_CLIENT_SECRET) {
+    return res.status(500).json({ error: 'LI_CLIENT_SECRET not set — restart server with: LI_CLIENT_SECRET=<secret> node server.js' });
+  }
+  const { code, redirect_uri, client_id, text } = req.body;
   try {
-    const resp = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+    // Step 1: exchange auth code for tokens
+    const tokenResp = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(req.body).toString(),
+      body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri, client_id, client_secret: LI_CLIENT_SECRET }).toString(),
     });
-    const data = await resp.json();
-    res.json(data);
+    const tokenData = await tokenResp.json();
+    console.log('[LI] token keys:', Object.keys(tokenData));
+    const { access_token, id_token } = tokenData;
+    if (!access_token) throw new Error('No access_token — ' + (tokenData.error_description || JSON.stringify(tokenData).slice(0, 120)));
+
+    // Step 2: get member ID — from id_token (openid scope) or /v2/userinfo fallback
+    let sub;
+    if (id_token) {
+      const payload = JSON.parse(Buffer.from(id_token.split('.')[1], 'base64url').toString('utf8'));
+      sub = String(payload.sub);
+    } else {
+      const uiResp = await fetch('https://api.linkedin.com/v2/userinfo', {
+        headers: { Authorization: `Bearer ${access_token}`, 'LinkedIn-Version': '202608' },
+      });
+      const uiData = await uiResp.json();
+      if (!uiData.sub) throw new Error(`Cannot get member ID: ${JSON.stringify(uiData)}`);
+      sub = String(uiData.sub);
+    }
+    const authorUrn = `urn:li:person:${sub}`;
+    console.log('[LI] posting as:', authorUrn);
+
+    // Step 3: create the LinkedIn post via /rest/posts (newer API, accepts urn:li:person:{oidc_sub})
+    const postResp = await fetch('https://api.linkedin.com/rest/posts', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        'Content-Type': 'application/json',
+        'LinkedIn-Version': '202608',
+        'X-Restli-Protocol-Version': '2.0.0',
+      },
+      body: JSON.stringify({
+        author: authorUrn,
+        lifecycleState: 'PUBLISHED',
+        visibility: 'PUBLIC',
+        commentary: text,
+        distribution: {
+          feedDistribution: 'MAIN_FEED',
+          targetEntities: [],
+          thirdPartyDistributionChannels: [],
+        },
+      }),
+    });
+    if (!postResp.ok) {
+      const err = await postResp.text();
+      throw new Error(`Post failed (${postResp.status}): ${err.slice(0, 200)}`);
+    }
+    res.json({ ok: true });
   } catch (e) {
+    console.error('[LI] share error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });

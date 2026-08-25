@@ -15,7 +15,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Patch or Panic?</title>
-<meta property="og:title" content="Patch or Panic? — CVE Severity Game">
+<meta property="og:title" content="Patch or Panic? | CVE Severity Game">
 <meta property="og:description" content="Can you rank vulnerabilities by severity? Test your security instincts.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -94,8 +94,7 @@ header {
 .stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); font-weight: 600; }
 .stat-value { font-family: var(--mono); font-size: clamp(17px,2.4vw,24px); font-weight: 700; color: var(--gold); text-shadow: 0 0 12px rgba(255,214,10,0.3); min-width: 48px; text-align: center; }
 .stat-value.streak { color: var(--accent); text-shadow: 0 0 12px rgba(0,212,255,0.4); }
-.highscore-label { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); text-align: center; }
-.highscore-value { font-family: var(--mono); font-size: 13px; color: var(--text-muted); text-align: center; }
+.stat-value.best { color: var(--critical); text-shadow: 0 0 12px rgba(255,45,85,0.5); }
 
 /* ── GAME AREA ── */
 #game {
@@ -353,6 +352,12 @@ header {
 }
 .share-btn-li:hover { background: rgba(10,102,194,0.2); border-color: rgba(10,102,194,0.5); }
 .share-icon { width: 16px; height: 16px; flex-shrink: 0; }
+.li-text-area { width: 100%; box-sizing: border-box; margin-top: 10px; padding: 10px 12px; background: rgba(10,102,194,0.08); border: 1px solid rgba(10,102,194,0.3); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 13px; line-height: 1.55; resize: none; height: 90px; outline: none; }
+.li-panel-actions { display: flex; gap: 8px; margin-top: 8px; }
+.li-copy-btn { flex: 1; padding: 8px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: var(--text); font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer; }
+.li-copy-btn:hover { background: rgba(255,255,255,0.1); }
+.li-open-btn { flex: 2; padding: 8px; border-radius: 7px; border: 1px solid rgba(10,102,194,0.4); background: rgba(10,102,194,0.15); color: #5aaeff; font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer; }
+.li-open-btn:hover { background: rgba(10,102,194,0.25); }
 
 /* Bottom buttons */
 .go-actions { display: flex; gap: 10px; width: 100%; }
@@ -370,6 +375,68 @@ header {
   font-size: 13px; font-weight: 700; letter-spacing: 1.5px; cursor: pointer; transition: all 0.15s;
 }
 .btn-restart:hover { background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.6); box-shadow: 0 0 20px rgba(0,212,255,0.15); }
+
+/* ── LINKEDIN MODALS ── */
+#li-preview, #li-success {
+  position: fixed; inset: 0; z-index: 300; display: none;
+  align-items: center; justify-content: center;
+  background: rgba(7,9,14,0.88); backdrop-filter: blur(20px);
+}
+#li-preview.show, #li-success.show { display: flex; }
+.li-modal-card {
+  background: #0e1320; border: 1px solid rgba(10,102,194,0.4); border-radius: 16px;
+  padding: 36px 40px; max-width: 480px; width: 92%;
+  display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;
+  box-shadow: 0 0 60px rgba(10,102,194,0.15), 0 40px 80px rgba(0,0,0,0.6);
+}
+.li-modal-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: #0a66c2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.li-modal-icon svg { width: 28px; height: 28px; fill: #fff; }
+.li-modal-headline {
+  font-family: var(--mono); font-size: 18px; font-weight: 800;
+  color: var(--text); letter-spacing: 0.5px;
+}
+.li-modal-sub {
+  font-family: var(--sans); font-size: 13px; color: var(--text-muted); line-height: 1.5;
+}
+.li-preview-box {
+  width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px 16px; font-family: var(--sans); font-size: 13px;
+  color: var(--text); line-height: 1.6; text-align: left; white-space: pre-wrap; word-break: break-word;
+}
+.li-modal-actions { display: flex; gap: 10px; width: 100%; margin-top: 4px; }
+.li-modal-btn-post {
+  flex: 1; padding: 13px 20px; border-radius: 8px;
+  border: none; background: #0a66c2;
+  color: #fff; font-family: var(--mono); font-size: 13px; font-weight: 700;
+  letter-spacing: 1px; cursor: pointer; transition: background 0.15s;
+}
+.li-modal-btn-post:hover { background: #0858a8; }
+.li-modal-btn-cancel {
+  padding: 13px 20px; border-radius: 8px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-muted); font-family: var(--mono); font-size: 13px; font-weight: 700;
+  letter-spacing: 1px; cursor: pointer; transition: all 0.15s;
+}
+.li-modal-btn-cancel:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+.li-modal-btn-done {
+  width: 100%; padding: 13px 20px; border-radius: 8px;
+  border: 1px solid rgba(10,102,194,0.5); background: rgba(10,102,194,0.1);
+  color: #4fa3e0; font-family: var(--mono); font-size: 13px; font-weight: 700;
+  letter-spacing: 1.5px; cursor: pointer; transition: all 0.15s;
+}
+.li-modal-btn-done:hover { background: rgba(10,102,194,0.2); border-color: rgba(10,102,194,0.8); }
+.li-spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid rgba(10,102,194,0.2); border-top-color: #0a66c2;
+  animation: liSpin 0.75s linear infinite;
+}
+@keyframes liSpin { to { transform: rotate(360deg); } }
+#li-success .li-posting-state, #li-success .li-done-state { display: none; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
+#li-success.posting .li-posting-state { display: flex; }
+#li-success.done .li-done-state { display: flex; }
 
 /* ── FLASH ── */
 .flash-overlay { position: fixed; inset: 0; z-index: 150; pointer-events: none; opacity: 0; }
@@ -404,8 +471,8 @@ header {
         <div class="stat-value" id="score-val">0</div>
       </div>
       <div class="stat">
-        <div class="highscore-label">Best</div>
-        <div class="highscore-value" id="highscore-val">0</div>
+        <div class="stat-label">🏅 Best</div>
+        <div class="stat-value best" id="highscore-val">0</div>
       </div>
     </div>
   </header>
@@ -495,6 +562,13 @@ header {
           Share on LinkedIn
         </button>
       </div>
+      <div id="li-panel" style="display:none">
+        <textarea id="li-text-area" class="li-text-area" readonly></textarea>
+        <div class="li-panel-actions">
+          <button class="li-copy-btn" onclick="liCopyText()">Copy text</button>
+          <button class="li-open-btn" onclick="liOpenWindow()">Open LinkedIn →</button>
+        </div>
+      </div>
     </div>
 
     <div class="go-actions">
@@ -505,6 +579,39 @@ header {
       <span class="go-pixee-powered">Powered by</span>
       <img id="pixee-logo-go" class="pixee-logo" alt="Pixee">
     </a>
+  </div>
+</div>
+
+<!-- LinkedIn Preview Modal -->
+<div id="li-preview">
+  <div class="li-modal-card">
+    <div class="li-modal-icon">
+      <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+    </div>
+    <div class="li-modal-headline">Your LinkedIn post</div>
+    <div class="li-preview-box" id="li-preview-text"></div>
+    <div class="li-modal-actions">
+      <button class="li-modal-btn-cancel" onclick="document.getElementById('li-preview').classList.remove('show')">Cancel</button>
+      <button class="li-modal-btn-post" onclick="liConfirmPost()">Post to LinkedIn →</button>
+    </div>
+  </div>
+</div>
+
+<!-- LinkedIn Posting / Success Modal -->
+<div id="li-success">
+  <div class="li-modal-card">
+    <div class="li-modal-icon">
+      <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+    </div>
+    <div class="li-posting-state">
+      <div class="li-modal-headline">Posting to LinkedIn</div>
+      <div class="li-spinner"></div>
+    </div>
+    <div class="li-done-state">
+      <div class="li-modal-headline">Posted to LinkedIn!</div>
+      <div class="li-modal-sub">Your score is live. Challenge your network to beat it.</div>
+      <button class="li-modal-btn-done" onclick="document.getElementById('li-success').classList.remove('show','posting','done')">DONE</button>
+    </div>
   </div>
 </div>
 
@@ -788,7 +895,7 @@ function buildCvssExplanation(higher, lower) {
   }
 
   if (higher.attackComplexity === 'LOW' && lower.attackComplexity === 'HIGH') {
-    reasons.push('No special conditions or knowledge are needed — it\'s straightforward to exploit');
+    reasons.push('No special conditions or knowledge are needed. It\'s straightforward to exploit.');
   }
 
   const privsOrder = {NONE: 3, LOW: 2, HIGH: 1};
@@ -799,7 +906,7 @@ function buildCvssExplanation(higher, lower) {
   }
 
   if (higher.userInteraction === 'NONE' && lower.userInteraction === 'REQUIRED') {
-    reasons.push('The attacker doesn\'t need any victim interaction — it can be exploited automatically');
+    reasons.push('The attacker doesn\'t need any victim interaction. It can be exploited automatically.');
   }
 
   if (higher.scope === 'CHANGED' && lower.scope !== 'CHANGED') {
@@ -813,7 +920,7 @@ function buildCvssExplanation(higher, lower) {
     if (higher.confImpact === 'HIGH') labels.push('confidentiality');
     if (higher.integImpact === 'HIGH') labels.push('integrity');
     if (higher.availImpact === 'HIGH') labels.push('availability');
-    if (labels.length) reasons.push(`High impact on ${labels.join(', ')} — full data exposure or system takeover is possible`);
+    if (labels.length) reasons.push(`High impact on ${labels.join(', ')}: full data exposure or system takeover is possible.`);
   }
 
   return reasons.slice(0, 3);
@@ -856,7 +963,7 @@ function onWrong(aScore,bScore) {
         </div></div>`;
 
     document.getElementById('go-context').innerHTML =
-      `${hLink} (${higherScore.toFixed(1)}) is higher than ${lLink} (${lowerScore.toFixed(1)}) — a ${diff}-point difference.${learnHtml}`;
+      `${hLink} (${higherScore.toFixed(1)}) is higher than ${lLink} (${lowerScore.toFixed(1)}) by ${diff} points.${learnHtml}`;
   }
   document.getElementById('gameover').classList.add('show');
 }
@@ -874,119 +981,105 @@ function restartGame() {
 function shareOnX() {
   const s = bestStreak || streak;
   const text = encodeURIComponent(
-    `I scored ${score} on Patch or Panic and ranked ${s} CVE${s !== 1 ? 's' : ''} correctly — the vulnerability severity game by @pixeeai.\n\nCan you beat me? ${window.location.href}`
+    `I scored ${score} on Patch or Panic and ranked ${s} CVE${s !== 1 ? 's' : ''} correctly, the vulnerability severity game by @pixeeai.\n\nCan you beat me? ${window.location.href}`
   );
   window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener');
 }
 
-// ── LINKEDIN OAUTH (PKCE) ─────────────────────────────────────────────────
-// Fill in your LinkedIn App Client ID (App → Auth tab → Client ID).
-// Add https://cve.wiki/ and http://localhost:3847/ as Authorized Redirect URLs.
-// The "Share on LinkedIn" product must be enabled on the app (Products tab).
-const LI_CLIENT_ID = '8623hnnvqqgfm4';
+// ── LINKEDIN ──────────────────────────────────────────────────────────────
+// Requires on the LinkedIn app (developers.linkedin.com):
+//   Products: "Share on LinkedIn" + "Sign In with LinkedIn using OpenID Connect"
+//   Auth → Redirect URLs: http://localhost:3847/  and  https://cve.wiki/
+//   Client Secret: set LI_CLIENT_SECRET env var before starting the server
+const LI_CLIENT_ID    = '8623hnnvqqgfm4';
+const LI_SCOPE        = 'openid profile w_member_social';
+const LI_WORKER_URL   = 'https://pop-li-share.aschaal1263.workers.dev';
 
-async function liGenPKCE() {
-  const raw = crypto.getRandomValues(new Uint8Array(32));
-  const verifier = btoa(String.fromCharCode(...raw)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
-  const challenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-  return { verifier, challenge };
-}
+let liServerAvailable = false;
 
 function liBuildText() {
   const s = bestStreak || streak;
-  return `I scored ${score} on Patch or Panic and ranked ${s} CVE${s!==1?'s':''} correctly — the vulnerability severity game by Pixee.\n\nCan you beat me? ${window.location.href}`;
-}
-
-function liFallbackShare() {
-  // On static hosting (no server proxy): copy score to clipboard and open LinkedIn compose
-  const text = liBuildText();
-  try {
-    if (navigator.clipboard) { navigator.clipboard.writeText(text).catch(()=>{}); }
-    else {
-      const ta = Object.assign(document.createElement('textarea'), { value: text });
-      Object.assign(ta.style, { position:'fixed', opacity:'0' });
-      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-    }
-  } catch {}
-  window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(window.location.href), '_blank', 'noopener');
-  showToast('Score copied! Paste it (Cmd+V) into the LinkedIn post box.');
+  return `I scored ${score} on Patch or Panic and ranked ${s} CVE${s!==1?'s':''} correctly, the vulnerability severity game by @Pixee.\n\nCan you beat me? ${window.location.href}`;
 }
 
 function shareOnLinkedIn() {
-  const text = liBuildText();
-  // Copy score to clipboard so user can paste into the compose box
-  (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
-    .catch(() => {
-      try {
-        const ta = Object.assign(document.createElement('textarea'), { value: text });
-        Object.assign(ta.style, { position:'fixed', opacity:'0' });
-        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-      } catch {}
-    });
-  window.open(
-    'https://www.linkedin.com/shareArticle?' + new URLSearchParams({ mini:'true', url: window.location.href }),
-    '_blank', 'noopener,width=600,height=600'
-  );
-  showToast('Score copied — paste it (Cmd+V) into LinkedIn');
-}
-
-async function liExchangeAndPost(code, verifier, redirectUri, text) {
-  showToast('Posting to LinkedIn…');
-  try {
-    // Server proxy handles CORS on LinkedIn's token endpoint
-    const proxyRes = await fetch('/api/li-token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ grant_type:'authorization_code', code, redirect_uri:redirectUri, client_id:LI_CLIENT_ID, code_verifier:verifier }),
-    });
-    if (!proxyRes.ok) throw new Error(`Token exchange failed (${proxyRes.status})`);
-    const tokenData = await proxyRes.json();
-    console.log('[LI] token response keys:', Object.keys(tokenData));
-    const { access_token } = tokenData;
-    if (!access_token) throw new Error('No access token: ' + JSON.stringify(tokenData).slice(0,120));
-
-    const meRes = await fetch('https://api.linkedin.com/v2/me?projection=(id)', {
-      headers: { Authorization: `Bearer ${access_token}` },
-    });
-    const meData = await meRes.json();
-    console.log('[LI] /v2/me response:', JSON.stringify(meData).slice(0,200));
-    const personId = meData.id;
-    if (!personId) throw new Error('/v2/me did not return id: ' + JSON.stringify(meData).slice(0,120));
-
-    const postRes = await fetch('https://api.linkedin.com/v2/ugcPosts', {
-      method: 'POST',
-      headers: { Authorization:`Bearer ${access_token}`, 'Content-Type':'application/json', 'X-Restli-Protocol-Version':'2.0.0' },
-      body: JSON.stringify({
-        author: `urn:li:person:${personId}`,
-        lifecycleState: 'PUBLISHED',
-        specificContent: { 'com.linkedin.ugc.ShareContent': { shareCommentary:{ text }, shareMediaCategory:'NONE' } },
-        visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' },
-      }),
-    });
-    if (!postRes.ok) {
-      const err = await postRes.text();
-      throw new Error(`Post failed (${postRes.status}): ${err.slice(0,100)}`);
-    }
-    showToast('Posted to LinkedIn!');
-  } catch(e) {
-    console.error('LinkedIn:', e);
-    showToast('LinkedIn error — ' + e.message.slice(0,80));
+  const hasEndpoint = liServerAvailable || !LI_WORKER_URL.includes('YOURNAME');
+  if (!hasEndpoint) {
+    // No endpoint: show copy-paste panel fallback
+    const panel = document.getElementById('li-panel');
+    const ta    = document.getElementById('li-text-area');
+    ta.value = liBuildText();
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    if (panel.style.display === 'block') { ta.focus(); ta.select(); }
+    return;
   }
+  // Show preview modal so the user sees the post text before authorizing
+  document.getElementById('li-preview-text').textContent = liBuildText();
+  document.getElementById('li-preview').classList.add('show');
 }
 
-// Called at page load — completes the OAuth flow after LinkedIn redirects back
-function liCheckCallback() {
-  const p = new URLSearchParams(window.location.search);
-  const code = p.get('code'), state = p.get('state');
-  if (!code || !state) return;
-  history.replaceState({}, '', window.location.pathname);
+function liConfirmPost() {
+  document.getElementById('li-preview').classList.remove('show');
+  // Annotate @Pixee so LinkedIn links it to the Pixee company page
+  const text = document.getElementById('li-preview-text').textContent
+    .replace('@Pixee', '@[Pixee](urn:li:organization:96613129)');
+  const state = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2,'0')).join('');
+  const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2,'0')).join('');
+  sessionStorage.setItem('li_state', state);
+  sessionStorage.setItem('li_nonce', nonce);
+  sessionStorage.setItem('li_text',  text);
+  const liParams = new URLSearchParams({
+    response_type: 'code',
+    client_id:     LI_CLIENT_ID,
+    redirect_uri:  window.location.origin + '/',
+    scope:         LI_SCOPE,
+    state,
+    nonce,
+  });
+  window.location.href = 'https://www.linkedin.com/oauth/v2/authorization?' + liParams.toString().replace(/\+/g, '%20');
+}
+
+function liCopyText() {
+  const ta = document.getElementById('li-text-area');
+  ta.focus(); ta.select();
+  if (!document.execCommand('copy') && navigator.clipboard) navigator.clipboard.writeText(ta.value).catch(()=>{});
+  showToast('Copied! Paste into LinkedIn post (Cmd+V)');
+}
+
+function liOpenWindow() {
+  window.open(
+    'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(window.location.href),
+    '_blank', 'noopener,width=620,height=620'
+  );
+}
+
+async function liHandleCallback(code, state, error) {
+  if (error) { showToast('LinkedIn share cancelled'); return; }
+  if (!code)  return;
 
   const savedState = sessionStorage.getItem('li_state');
-  const verifier   = sessionStorage.getItem('li_verifier');
   const text       = sessionStorage.getItem('li_text');
-  if (state === savedState && verifier && text) {
-    liExchangeAndPost(code, verifier, window.location.origin + '/', text);
+  sessionStorage.removeItem('li_state');
+  sessionStorage.removeItem('li_text');
+
+  if (state !== savedState || !text) { showToast('LinkedIn: state mismatch. Try again.'); return; }
+
+  const liModal = document.getElementById('li-success');
+  liModal.classList.add('show', 'posting');
+  try {
+    const endpoint = liServerAvailable ? '/api/li-share' : LI_WORKER_URL;
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, redirect_uri: window.location.origin + '/', client_id: LI_CLIENT_ID, text }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+    liModal.classList.replace('posting', 'done');
+  } catch (e) {
+    console.error('[LI]', e);
+    liModal.classList.remove('show', 'posting', 'done');
+    showToast('LinkedIn post failed: ' + e.message.slice(0, 70));
   }
 }
 
@@ -1010,12 +1103,19 @@ async function boot() {
   const loadStatus=document.getElementById('load-status');
   const loadCount=document.getElementById('load-count');
 
+  // Capture LinkedIn OAuth callback params before anything clears them
+  const qp=new URLSearchParams(window.location.search);
+  const liCode=qp.get('code'), liState=qp.get('state'), liError=qp.get('error');
+  if (liCode||liError) history.replaceState({},''  ,window.location.pathname);
+
   // Detect local dev server vs. static GitHub Pages deploy
   let serverAvailable = false;
   try {
     const r = await fetch('/api/status', { signal: AbortSignal.timeout(1200) });
     serverAvailable = r.ok;
   } catch { /* static mode */ }
+
+  liServerAvailable = serverAvailable;
 
   if (serverAvailable) {
     // Local dev: poll until the server has finished fetching from NVD
@@ -1045,6 +1145,9 @@ async function boot() {
   document.getElementById('app').style.display='flex';
   highScore=parseInt(localStorage.getItem('popHighScore')||'0');
   updateStats(); pickPair(false); render();
+
+  // Complete LinkedIn OAuth if we just returned from LinkedIn authorization
+  if (liCode||liError) await liHandleCallback(liCode, liState, liError);
 }
 boot().catch(e=>{document.getElementById('load-status').textContent='⚠️ '+e.message;});
 
