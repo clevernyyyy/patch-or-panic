@@ -58,7 +58,7 @@ export default {
 <meta property="og:image" content="${imgUrl}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:url" content="https://cve.wiki">
+<meta property="og:url" content="${workerOrigin}/s/${token}">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="I scored ${score} on Patch or Panic">
