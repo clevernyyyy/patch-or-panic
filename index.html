@@ -1012,8 +1012,10 @@ function restartGame() {
 // ── SHARE ────────────────────────────────────────────────────────────────
 function shareOnX() {
   const s = bestStreak || streak;
+  // X cards use the last URL in the tweet — put image URL last
+  const suffix = liShareUrl ? `\n${liShareUrl}` : '';
   const text = encodeURIComponent(
-    `I scored ${score} on Patch or Panic and ranked ${s} CVE${s !== 1 ? 's' : ''} correctly, the vulnerability severity game by @pixeeai.\n\nCan you beat me? ${window.location.href}`
+    `I scored ${score} on Patch or Panic and ranked ${s} CVE${s !== 1 ? 's' : ''} correctly, the vulnerability severity game by @pixeeai.\n\nCan you beat me? ${window.location.href}${suffix}`
   );
   window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener');
 }
