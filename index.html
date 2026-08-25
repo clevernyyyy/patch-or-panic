@@ -179,11 +179,18 @@ header {
 .attack-badge::before { content: '⚡'; }
 
 /* Description fills remaining space so both cards same height */
-.desc-area { padding: 10px 16px; flex: 1; }
+.desc-area { padding: 10px 16px 6px; flex: 1; display: flex; flex-direction: column; }
 .desc-text {
   font-size: 14px; color: var(--text-muted); line-height: 1.65;
   display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
 }
+.desc-text.expanded { display: block; -webkit-line-clamp: unset; overflow: visible; }
+.desc-toggle {
+  display: none; margin-top: 6px; padding: 2px 0; background: none; border: none;
+  cursor: pointer; font-size: 12px; font-family: var(--sans); font-weight: 600;
+  color: var(--accent); opacity: 0.75; text-align: left; align-self: flex-start;
+}
+.desc-toggle:hover { opacity: 1; }
 
 .meta-row { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px 10px; flex-shrink: 0; }
 .chip { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; padding: 4px 9px; border-radius: 4px; display: flex; align-items: center; gap: 4px; border: 1px solid; }
@@ -542,6 +549,7 @@ function scopeLabel(s)      { return s==='CHANGED'?'💥 Scope Change':null; }
 
 let allCVEs=[], cveA=null, cveB=null;
 let score=0, streak=0, bestStreak=0;
+let descExpanded=false;
 let highScore=parseInt(localStorage.getItem('popHighScore')||'0');
 let isAnimating=false, usedIds=new Set(), roundsPlayed=0;
 
@@ -603,7 +611,10 @@ function renderCard(cve, mystery=false) {
       </div>
     </div>
     ${cve.attackType?`<div class="attack-badge">${cve.attackType}</div>`:''}
-    <div class="desc-area"><div class="desc-text">${truncDesc(cve.description)}</div></div>
+    <div class="desc-area">
+      <div class="desc-text${descExpanded?' expanded':''}">${cve.description}</div>
+      <button class="desc-toggle" onclick="toggleDesc()" style="display:none">${descExpanded?'Show less ↑':'Show more ↓'}</button>
+    </div>
     <div class="meta-row">${chips.join('')}</div>
     <div class="score-section">
       <div class="score-label">CVSS Base Score</div>
@@ -621,14 +632,33 @@ function setSeverityClass(el, sev) {
   el.className='cve-card'+(sev&&sev!=='UNKNOWN'?` severity-${sev}`:' mystery');
 }
 
+function toggleDesc() {
+  descExpanded = !descExpanded;
+  document.querySelectorAll('.desc-text').forEach(el => el.classList.toggle('expanded', descExpanded));
+  document.querySelectorAll('.desc-toggle').forEach(btn => { btn.textContent = descExpanded ? 'Show less ↑' : 'Show more ↓'; });
+}
+
+function checkDescOverflow() {
+  // Show toggle buttons only if at least one description is actually truncated
+  const texts = document.querySelectorAll('.desc-text');
+  let anyOverflows = false;
+  texts.forEach(el => { if (el.scrollHeight > el.clientHeight + 2) anyOverflows = true; });
+  document.querySelectorAll('.desc-toggle').forEach(btn => { btn.style.display = anyOverflows ? 'block' : 'none'; });
+}
+
 function render() {
+  descExpanded = false;
   const cardA=document.getElementById('card-a');
   const cardB=document.getElementById('card-b');
   cardA.innerHTML=renderCard(cveA,false);
   cardB.innerHTML=renderCard(cveB,true);
   setSeverityClass(cardA,cveA.severity);
   setSeverityClass(cardB,null);
-  requestAnimationFrame(()=>{ const b=document.getElementById('bar-a'); if(b) b.style.width=`${(cveA.score/10)*100}%`; });
+  requestAnimationFrame(()=>{
+    const b=document.getElementById('bar-a');
+    if(b) b.style.width=`${(cveA.score/10)*100}%`;
+    checkDescOverflow();
+  });
   document.getElementById('pool-count').textContent=`${allCVEs.length} CVEs · round ${roundsPlayed+1}`;
 }
 
