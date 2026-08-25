@@ -1012,10 +1012,10 @@ function restartGame() {
 // ── SHARE ────────────────────────────────────────────────────────────────
 function shareOnX() {
   const s = bestStreak || streak;
-  // X uses last URL for the card; cve.wiki/s/{token} is served by the Worker
-  const suffix = liShareUrl ? `\n${liShareUrl}` : '';
+  const primary = liShareUrl || window.location.href;
+  const secondary = liShareUrl ? `\n${window.location.href}` : '';
   const text = encodeURIComponent(
-    `I scored ${score} on Patch or Panic and ranked ${s} CVE${s !== 1 ? 's' : ''} correctly, the vulnerability severity game by @pixeeai.\n\nCan you beat me? ${window.location.href}${suffix}`
+    `I scored ${score} on Patch or Panic and ranked ${s} CVE${s !== 1 ? 's' : ''} correctly, the vulnerability severity game by @pixeeai.\n\nCan you beat me? ${primary}${secondary}`
   );
   window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener');
 }
