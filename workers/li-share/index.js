@@ -78,7 +78,7 @@ p{color:rgba(90,112,128,0.7);font-size:13px;font-family:'Inter',sans-serif}
 <body>
 <img src="${imgUrl}" alt="Score: ${score} on Patch or Panic">
 <a class="cta" href="https://cve.wiki">Beat this score &rarr;</a>
-<p>Patch or Panic? &middot; cve.wiki &middot; by Pixee</p>
+<p>Patch or Panic? &middot; cve.wiki &middot; by <a href="https://pixee.ai?utm_source=patch-or-panic&utm_medium=share-card&utm_campaign=cve-wiki" style="color:inherit">Pixee</a></p>
 </body>
 </html>`;
       return new Response(html, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
