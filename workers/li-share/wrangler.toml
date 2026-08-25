@@ -1,3 +1,7 @@
 name = "pop-li-share"
 main = "index.js"
 compatibility_date = "2025-01-01"
+
+[[kv_namespaces]]
+binding = "SCORES"
+id = "3611f119249d41c897663557e9fd836e"

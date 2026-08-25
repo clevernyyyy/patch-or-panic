@@ -380,12 +380,12 @@ app.get('/api/cves', (req, res) => {
 
 // One-shot LinkedIn share: token exchange + member ID via introspection + post creation.
 // Requires LI_CLIENT_SECRET env var: LI_CLIENT_SECRET=<secret> node server.js
-app.post('/api/li-share', express.json(), async (req, res) => {
+app.post('/api/li-share', express.json({ limit: '2mb' }), async (req, res) => {
   const LI_CLIENT_SECRET = process.env.LI_CLIENT_SECRET || '';
   if (!LI_CLIENT_SECRET) {
     return res.status(500).json({ error: 'LI_CLIENT_SECRET not set — restart server with: LI_CLIENT_SECRET=<secret> node server.js' });
   }
-  const { code, redirect_uri, client_id, text } = req.body;
+  const { code, redirect_uri, client_id, text, imageBase64 } = req.body;
   try {
     // Step 1: exchange auth code for tokens
     const tokenResp = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
@@ -414,7 +414,55 @@ app.post('/api/li-share', express.json(), async (req, res) => {
     const authorUrn = `urn:li:person:${sub}`;
     console.log('[LI] posting as:', authorUrn);
 
-    // Step 3: create the LinkedIn post via /rest/posts (newer API, accepts urn:li:person:{oidc_sub})
+    // Step 3: optionally upload score card image
+    let imageUrn = null;
+    if (imageBase64) {
+      try {
+        const liHeaders = {
+          Authorization: `Bearer ${access_token}`,
+          'Content-Type': 'application/json',
+          'LinkedIn-Version': '202608',
+          'X-Restli-Protocol-Version': '2.0.0',
+        };
+        const initResp = await fetch('https://api.linkedin.com/rest/images?action=initializeUpload', {
+          method: 'POST',
+          headers: liHeaders,
+          body: JSON.stringify({ initializeUploadRequest: { owner: authorUrn } }),
+        });
+        const initData = await initResp.json();
+        const uploadUrl = initData.value?.uploadUrl;
+        imageUrn = initData.value?.image || null;
+        if (uploadUrl && imageUrn) {
+          const imgBuffer = Buffer.from(imageBase64, 'base64');
+          await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'image/jpeg' },
+            body: imgBuffer,
+          });
+          console.log('[LI] image uploaded:', imageUrn);
+        } else {
+          imageUrn = null;
+        }
+      } catch (imgErr) {
+        console.warn('[LI] image upload failed, posting without image:', imgErr.message);
+        imageUrn = null;
+      }
+    }
+
+    // Step 4: create the LinkedIn post via /rest/posts (newer API, accepts urn:li:person:{oidc_sub})
+    const postBody = {
+      author: authorUrn,
+      lifecycleState: 'PUBLISHED',
+      visibility: 'PUBLIC',
+      commentary: text,
+      distribution: {
+        feedDistribution: 'MAIN_FEED',
+        targetEntities: [],
+        thirdPartyDistributionChannels: [],
+      },
+    };
+    if (imageUrn) postBody.content = { media: { id: imageUrn } };
+
     const postResp = await fetch('https://api.linkedin.com/rest/posts', {
       method: 'POST',
       headers: {
@@ -423,17 +471,7 @@ app.post('/api/li-share', express.json(), async (req, res) => {
         'LinkedIn-Version': '202608',
         'X-Restli-Protocol-Version': '2.0.0',
       },
-      body: JSON.stringify({
-        author: authorUrn,
-        lifecycleState: 'PUBLISHED',
-        visibility: 'PUBLIC',
-        commentary: text,
-        distribution: {
-          feedDistribution: 'MAIN_FEED',
-          targetEntities: [],
-          thirdPartyDistributionChannels: [],
-        },
-      }),
+      body: JSON.stringify(postBody),
     });
     if (!postResp.ok) {
       const err = await postResp.text();
