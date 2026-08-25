@@ -913,66 +913,46 @@ function liFallbackShare() {
   showToast('Score copied! Paste it (Cmd+V) into the LinkedIn post box.');
 }
 
-async function shareOnLinkedIn() {
-  if (!LI_CLIENT_ID) { liFallbackShare(); return; }
-
-  // Check if the server proxy is available (localhost dev vs. static deploy)
-  let hasProxy = false;
-  try {
-    const r = await fetch('/api/li-token', { method:'HEAD', signal: AbortSignal.timeout(600) });
-    hasProxy = r.status !== 404;
-  } catch {}
-
-  if (!hasProxy) { liFallbackShare(); return; }
-
-  const { verifier, challenge } = await liGenPKCE();
-  const state = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2,'0')).join('');
-
-  sessionStorage.setItem('li_state', state);
-  sessionStorage.setItem('li_verifier', verifier);
-  sessionStorage.setItem('li_text', liBuildText());
-
-  window.location.href = 'https://www.linkedin.com/oauth/v2/authorization?' + new URLSearchParams({
-    response_type: 'code',
-    client_id: LI_CLIENT_ID,
-    redirect_uri: window.location.origin + '/',
-    scope: 'w_member_social',
-    state,
-    code_challenge: challenge,
-    code_challenge_method: 'S256',
-  });
+function shareOnLinkedIn() {
+  const text = liBuildText();
+  // Copy score to clipboard so user can paste into the compose box
+  (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+    .catch(() => {
+      try {
+        const ta = Object.assign(document.createElement('textarea'), { value: text });
+        Object.assign(ta.style, { position:'fixed', opacity:'0' });
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      } catch {}
+    });
+  window.open(
+    'https://www.linkedin.com/shareArticle?' + new URLSearchParams({ mini:'true', url: window.location.href }),
+    '_blank', 'noopener,width=600,height=600'
+  );
+  showToast('Score copied — paste it (Cmd+V) into LinkedIn');
 }
 
 async function liExchangeAndPost(code, verifier, redirectUri, text) {
   showToast('Posting to LinkedIn…');
   try {
-    const tokenBody = new URLSearchParams({ grant_type:'authorization_code', code, redirect_uri:redirectUri, client_id:LI_CLIENT_ID, code_verifier:verifier });
+    // Server proxy handles CORS on LinkedIn's token endpoint
+    const proxyRes = await fetch('/api/li-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type:'authorization_code', code, redirect_uri:redirectUri, client_id:LI_CLIENT_ID, code_verifier:verifier }),
+    });
+    if (!proxyRes.ok) throw new Error(`Token exchange failed (${proxyRes.status})`);
+    const tokenData = await proxyRes.json();
+    console.log('[LI] token response keys:', Object.keys(tokenData));
+    const { access_token } = tokenData;
+    if (!access_token) throw new Error('No access token: ' + JSON.stringify(tokenData).slice(0,120));
 
-    // Try server-side proxy first (avoids CORS on LinkedIn's token endpoint)
-    let tokenData;
-    try {
-      const proxyRes = await fetch('/api/li-token', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:tokenBody });
-      if (proxyRes.ok) tokenData = await proxyRes.json();
-    } catch {}
-
-    if (!tokenData?.access_token) {
-      // Fallback: direct token exchange (works if browser supports CORS here)
-      const tokRes = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
-        method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:tokenBody,
-      });
-      if (!tokRes.ok) throw new Error(`Token exchange failed (${tokRes.status})`);
-      tokenData = await tokRes.json();
-    }
-
-    const access_token = tokenData.access_token;
-    if (!access_token) throw new Error('No access token returned');
-
-    // Get member ID — /v2/me returns id with any authenticated token
-    const me = await fetch('https://api.linkedin.com/v2/me?projection=(id)', {
-      headers: { Authorization:`Bearer ${access_token}` },
-    }).then(r=>r.json());
-    const personId = me.id || me.sub;
-    if (!personId) throw new Error('Could not retrieve LinkedIn member ID');
+    const meRes = await fetch('https://api.linkedin.com/v2/me?projection=(id)', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+    const meData = await meRes.json();
+    console.log('[LI] /v2/me response:', JSON.stringify(meData).slice(0,200));
+    const personId = meData.id;
+    if (!personId) throw new Error('/v2/me did not return id: ' + JSON.stringify(meData).slice(0,120));
 
     const postRes = await fetch('https://api.linkedin.com/v2/ugcPosts', {
       method: 'POST',
@@ -986,12 +966,12 @@ async function liExchangeAndPost(code, verifier, redirectUri, text) {
     });
     if (!postRes.ok) {
       const err = await postRes.text();
-      throw new Error(`Post failed (${postRes.status}): ${err.slice(0,80)}`);
+      throw new Error(`Post failed (${postRes.status}): ${err.slice(0,100)}`);
     }
     showToast('Posted to LinkedIn!');
   } catch(e) {
     console.error('LinkedIn:', e);
-    showToast('LinkedIn error — ' + e.message.slice(0,70));
+    showToast('LinkedIn error — ' + e.message.slice(0,80));
   }
 }
 
@@ -1066,7 +1046,6 @@ async function boot() {
   highScore=parseInt(localStorage.getItem('popHighScore')||'0');
   updateStats(); pickPair(false); render();
 }
-liCheckCallback();
 boot().catch(e=>{document.getElementById('load-status').textContent='⚠️ '+e.message;});
 
 // Copy Pixee logo src from footer into the game-over modal (avoids repeating 17KB base64)
