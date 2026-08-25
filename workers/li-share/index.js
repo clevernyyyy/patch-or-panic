@@ -48,9 +48,7 @@ export default {
       const { score, streak } = JSON.parse(metaRaw);
       const imgUrl = `${workerOrigin}/img/${token}`;
       const s = Number(streak);
-      // X needs og:url=cve.wiki to trust the card; Bluesky needs og:url=worker URL
-      const forX = new URL(request.url).searchParams.get('v') === 'x';
-      const ogUrl = forX ? 'https://cve.wiki' : `${workerOrigin}/s/${token}`;
+      const ogUrl = `${workerOrigin}/s/${token}`;
       const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -101,7 +99,7 @@ p{color:rgba(90,112,128,0.7);font-size:13px;font-family:'Inter',sans-serif}
           await env.SCORES.put(token, imgBytes.buffer, { expirationTtl: ttl });
           await env.SCORES.put(token + ':meta', JSON.stringify({ score, streak }), { expirationTtl: ttl });
           return new Response(
-            JSON.stringify({ token, url: `${workerOrigin}/s/${token}` }),
+            JSON.stringify({ token, url: `https://cve.wiki/s/${token}` }),
             { headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
           );
         } catch (e) {
