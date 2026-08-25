@@ -1012,8 +1012,9 @@ function restartGame() {
 // ── SHARE ────────────────────────────────────────────────────────────────
 function shareOnX() {
   const s = bestStreak || streak;
-  // X cards use the last URL in the tweet — put image URL last
-  const suffix = liShareUrl ? `\n${liShareUrl}` : '';
+  // X cards use the last URL; og:url=cve.wiki variant (?v=x) for trust
+  const xUrl = liShareUrl ? liShareUrl + '?v=x' : null;
+  const suffix = xUrl ? `\n${xUrl}` : '';
   const text = encodeURIComponent(
     `I scored ${score} on Patch or Panic and ranked ${s} CVE${s !== 1 ? 's' : ''} correctly, the vulnerability severity game by @pixeeai.\n\nCan you beat me? ${window.location.href}${suffix}`
   );

@@ -48,6 +48,9 @@ export default {
       const { score, streak } = JSON.parse(metaRaw);
       const imgUrl = `${workerOrigin}/img/${token}`;
       const s = Number(streak);
+      // X needs og:url=cve.wiki to trust the card; Bluesky needs og:url=worker URL
+      const forX = new URL(request.url).searchParams.get('v') === 'x';
+      const ogUrl = forX ? 'https://cve.wiki' : `${workerOrigin}/s/${token}`;
       const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,7 +61,7 @@ export default {
 <meta property="og:image" content="${imgUrl}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:url" content="${workerOrigin}/s/${token}">
+<meta property="og:url" content="${ogUrl}">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="I scored ${score} on Patch or Panic">
